@@ -38,7 +38,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-surface transition-colors duration-200">
+  <div class="min-h-screen bg-surface transition-colors duration-200 overflow-x-hidden">
     <n-config-provider :theme="naiveTheme">
       <n-message-provider>
         <n-notification-provider>

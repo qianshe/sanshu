@@ -726,14 +726,14 @@ function handleOpenIndexStatus() {
 
     <!-- 内容区域 -->
     <!-- 上下布局（默认） -->
-    <div v-if="!props.appConfig.window.splitLayout" class="flex-1 overflow-y-auto scrollbar-thin">
+    <div v-if="!props.appConfig.window.splitLayout" class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin">
       <!-- 消息内容 - 允许选中 -->
       <div class="mx-2 mt-2 mb-1 px-4 py-3 bg-black-100 rounded-lg select-text" data-guide="popup-content">
         <PopupContent :request="request" :loading="loading" :current-theme="props.appConfig.theme" @quote-message="handleQuoteMessage" />
       </div>
 
       <!-- 输入和选项 - 允许选中 -->
-      <div class="px-4 pb-3 bg-black select-text">
+      <div class="min-w-0 px-4 pb-3 bg-black select-text">
         <PopupInput
           ref="inputRef" :request="request" :loading="loading" :submitting="submitting"
           :enhance-enabled="localEnhanceEnabled"
@@ -745,19 +745,19 @@ function handleOpenIndexStatus() {
     </div>
 
     <!-- 左右分栏布局 -->
-    <div v-else class="flex-1 flex flex-row min-h-0 overflow-hidden">
+    <div v-else class="flex-1 flex flex-row min-h-0 min-w-0 overflow-hidden">
       <!-- 左侧：AI回复内容（50%） -->
-      <div class="w-1/2 overflow-y-auto scrollbar-thin border-r border-gray-700/50">
+      <div class="w-1/2 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin border-r border-gray-700/50">
         <div class="mx-2 mt-2 mb-1 px-4 py-3 bg-black-100 rounded-lg select-text" data-guide="popup-content">
           <PopupContent :request="request" :loading="loading" :current-theme="props.appConfig.theme" @quote-message="handleQuoteMessage" />
         </div>
       </div>
 
       <!-- 右侧：用户交互区 + 底部操作栏（50%） -->
-      <div class="w-1/2 flex flex-col min-h-0 overflow-hidden">
+      <div class="w-1/2 min-w-0 flex flex-col min-h-0 overflow-hidden">
         <!-- 输入和选项 - 独立滚动 -->
-        <div class="flex-1 overflow-y-auto scrollbar-thin">
-          <div class="px-4 pb-3 bg-black select-text">
+        <div class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin">
+          <div class="min-w-0 px-4 pb-3 bg-black select-text">
             <PopupInput
               ref="inputRef" :request="request" :loading="loading" :submitting="submitting"
               :enhance-enabled="localEnhanceEnabled"
@@ -769,7 +769,7 @@ function handleOpenIndexStatus() {
         </div>
 
         <!-- 底部操作栏 - 固定在右侧底部 -->
-        <div class="flex-shrink-0 bg-black-100 border-t-2 border-black-200" data-guide="popup-actions">
+        <div class="min-w-0 flex-shrink-0 bg-black-100 border-t-2 border-black-200" data-guide="popup-actions">
           <PopupActions
             :request="request" :loading="loading" :submitting="submitting" :can-submit="canSubmit"
             :can-enhance="canEnhance"

@@ -81,8 +81,8 @@ function isAuthFailure(): boolean {
 </script>
 
 <template>
-  <div class="px-4 py-3 select-none">
-    <div class="flex items-center justify-between gap-3">
+  <div class="min-w-0 px-4 py-3 select-none">
+    <div class="flex min-w-0 items-center justify-between gap-3">
       <!-- 左侧：标题 -->
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-3 h-3 rounded-full bg-primary-500" />
@@ -92,7 +92,7 @@ function isAuthFailure(): boolean {
       </div>
 
       <!-- 右侧：MCP 索引状态指示器 + 操作按钮 -->
-      <div class="flex items-center gap-3">
+      <div class="flex min-w-0 items-center gap-3">
         <!-- MCP 代码索引状态指示器（仅在 sou 工具启用且有项目索引状态时显示） -->
         <n-tooltip
           v-if="mcpEnabled && mcpStatusSummary"
@@ -102,7 +102,7 @@ function isAuthFailure(): boolean {
           <template #trigger>
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-full border border-black-300/60 bg-black-200/70 px-2.5 py-1 text-xs text-white transition-colors duration-150 hover:bg-black-300/70"
+              class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-black-300/60 bg-black-200/70 px-2.5 py-1 text-xs text-white transition-colors duration-150 hover:bg-black-300/70"
               @click="handleOpenIndexStatus"
             >
               <div
@@ -148,7 +148,7 @@ function isAuthFailure(): boolean {
           </div>
         </n-tooltip>
 
-        <n-space size="small">
+        <n-space size="small" class="shrink-0">
           <!-- 置顶按钮 -->
           <n-button
             size="small"

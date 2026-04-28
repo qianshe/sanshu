@@ -200,7 +200,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black">
+  <div class="min-h-screen bg-black overflow-x-hidden">
     <!-- 图标搜索弹窗模式 -->
     <IconPopupMode
       v-if="props.isIconMode && props.iconParams"
@@ -213,7 +213,7 @@ onUnmounted(() => {
     <!-- MCP弹窗模式 -->
     <div
       v-else-if="props.showMcpPopup && props.mcpRequest"
-      class="flex flex-col w-full h-screen bg-black text-white select-none"
+      class="flex flex-col w-full h-screen min-w-0 overflow-x-hidden bg-black text-white select-none"
     >
       <!-- 头部 - 固定在顶部 -->
       <div class="sticky top-0 z-50 flex-shrink-0 bg-black-200 border-b-2 border-black-300">
@@ -293,7 +293,7 @@ onUnmounted(() => {
     <!-- 弹窗加载骨架屏 或 初始化骨架屏 -->
     <div
       v-else-if="props.showMcpPopup || props.isInitializing"
-      class="flex flex-col w-full h-screen bg-black text-white"
+      class="flex flex-col w-full h-screen min-w-0 overflow-x-hidden bg-black text-white"
     >
       <!-- 头部骨架 -->
       <div class="flex-shrink-0 bg-black-100 border-b-2 border-black-200 px-4 py-3">

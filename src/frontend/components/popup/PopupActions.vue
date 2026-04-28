@@ -115,21 +115,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="px-4 py-3 bg-gray-100 min-h-[60px] select-none">
-    <div v-if="!loading" class="flex justify-between items-center">
+  <div class="min-w-0 px-4 py-3 bg-gray-100 min-h-[60px] select-none">
+    <div v-if="!loading" class="flex min-w-0 flex-wrap items-center justify-between gap-3">
       <!-- 左侧状态信息 -->
-      <div class="flex items-center">
-        <div class="flex items-center gap-2 text-xs text-gray-600">
+      <div class="min-w-0 flex flex-1 items-center">
+        <div class="flex min-w-0 items-center gap-2 text-xs text-gray-600">
           <div class="w-2 h-2 rounded-full bg-primary-500" />
           <span class="font-medium">{{ connectionStatus }}</span>
           <span class="opacity-60">|</span>
-          <span class="opacity-60">{{ statusText }}</span>
+          <span class="min-w-0 flex-1 truncate opacity-60">{{ statusText }}</span>
         </div>
       </div>
 
       <!-- 右侧操作按钮 -->
-      <div class="flex items-center" data-guide="popup-actions">
-        <n-space size="small">
+      <div class="flex max-w-full flex-wrap items-center justify-end gap-2" data-guide="popup-actions">
+        <n-space size="small" wrap>
           <!-- 增强按钮 / 启用 CTA -->
           <n-tooltip v-if="enhanceEnabled" trigger="hover" placement="top">
             <template #trigger>

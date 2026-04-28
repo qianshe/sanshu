@@ -712,7 +712,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="space-y-3">
+  <div class="min-w-0 space-y-3">
     <!-- 预定义选项 -->
     <div v-if="!loading && hasOptions" class="space-y-3" data-guide="predefined-options">
       <h4 class="text-sm font-medium text-white">
@@ -794,12 +794,12 @@ defineExpose({
           'transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)]',
           isFloating ? 'sticky bottom-0 z-[50]' : 'relative',
           (isFloating && isSticking)
-            ? 'bg-surface/85 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.15)] border-t border-white/10 pb-5 pt-4 px-3 -mx-3 mb-0'
+            ? 'min-w-0 overflow-x-hidden rounded-xl bg-surface/85 backdrop-blur-xl shadow-[0_-8px_30px_rgba(0,0,0,0.15)] border border-white/10 pb-5 pt-4 px-3 mb-0'
             : 'space-y-3',
         ]"
       >
         <!-- 标题栏 & 切换按钮 -->
-        <div class="flex items-center justify-between mb-2">
+        <div class="mb-2 flex min-w-0 items-center justify-between gap-3">
           <h4 class="text-sm font-medium text-white">
             {{ hasOptions ? '补充说明 (可选)' : '请输入您的回复' }}
           </h4>
