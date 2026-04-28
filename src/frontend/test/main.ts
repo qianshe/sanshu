@@ -79,7 +79,11 @@ if (!window.__TAURI__) {
           return { theme: 'dark' }
         }
         if (command === 'get_reply_config') {
-          return { continue_prompt: '请按照最佳实践继续' }
+          return {
+            continue_prompt: '请按照最佳实践继续',
+            enable_continue_reply: true,
+            auto_continue_threshold: 180000,
+          }
         }
         return {}
       },

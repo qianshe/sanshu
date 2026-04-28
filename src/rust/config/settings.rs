@@ -105,7 +105,7 @@ pub struct ReplyConfig {
     #[serde(default = "default_enable_continue_reply")]
     pub enable_continue_reply: bool,
     #[serde(default = "default_auto_continue_threshold")]
-    pub auto_continue_threshold: u32, // 字符数阈值
+    pub auto_continue_threshold: u32, // 自动继续超时时间（毫秒）
     #[serde(default = "default_continue_prompt")]
     pub continue_prompt: String, // 继续回复的提示词
 }

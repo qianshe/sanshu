@@ -35,6 +35,7 @@ export function useAppManager() {
       reply: {
         enabled: settings.continueReplyEnabled.value,
         prompt: settings.continuePrompt.value,
+        autoContinueThreshold: settings.autoContinueThreshold.value,
       },
     }
 

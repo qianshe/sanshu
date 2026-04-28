@@ -24,6 +24,7 @@ function createSettings() {
   // 继续回复设置
   const continueReplyEnabled = ref(true)
   const continuePrompt = ref('请按照最佳实践继续')
+  const autoContinueThreshold = ref(180000)
 
   // 窗口约束和 UI 常量
   const windowConstraints = ref({
@@ -104,8 +105,9 @@ function createSettings() {
         const replyConfig = await invoke('get_reply_config')
         if (replyConfig) {
           const config = replyConfig as any
-          continueReplyEnabled.value = config.enable_continue_reply || true
-          continuePrompt.value = config.continue_prompt || '请按照最佳实践继续'
+          continueReplyEnabled.value = config.enable_continue_reply ?? true
+          continuePrompt.value = config.continue_prompt ?? '请按照最佳实践继续'
+          autoContinueThreshold.value = config.auto_continue_threshold ?? 180000
         }
       }
       catch {
@@ -394,15 +396,24 @@ function createSettings() {
   }
 
   // 更新继续回复设置
-  async function updateReplyConfig(config: { enable_continue_reply?: boolean, continue_prompt?: string }) {
+  async function updateReplyConfig(config: { enable_continue_reply?: boolean, continue_prompt?: string, auto_continue_threshold?: number }) {
     try {
-      await invoke('set_reply_config', { config })
+      await invoke('set_reply_config', {
+        replyConfig: {
+          enable_continue_reply: config.enable_continue_reply ?? continueReplyEnabled.value,
+          continue_prompt: config.continue_prompt ?? continuePrompt.value,
+          auto_continue_threshold: config.auto_continue_threshold ?? autoContinueThreshold.value,
+        },
+      })
 
       if (config.enable_continue_reply !== undefined) {
         continueReplyEnabled.value = config.enable_continue_reply
       }
       if (config.continue_prompt !== undefined) {
         continuePrompt.value = config.continue_prompt
+      }
+      if (config.auto_continue_threshold !== undefined) {
+        autoContinueThreshold.value = config.auto_continue_threshold
       }
 
       if (message) {
@@ -473,6 +484,7 @@ function createSettings() {
     windowConstraints,
     continueReplyEnabled,
     continuePrompt,
+    autoContinueThreshold,
 
     // 方法
     setMessageInstance,

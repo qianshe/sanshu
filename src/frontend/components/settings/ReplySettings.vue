@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 interface ReplyConfig {
   enable_continue_reply: boolean
@@ -10,8 +10,16 @@ interface ReplyConfig {
 
 const localConfig = ref<ReplyConfig>({
   enable_continue_reply: true,
-  auto_continue_threshold: 1000,
+  auto_continue_threshold: 180000,
   continue_prompt: '请按照最佳实践继续',
+})
+
+const autoContinueSeconds = computed({
+  get: () => Math.max(1, Math.round((localConfig.value.auto_continue_threshold || 180000) / 1000)),
+  set: (value: number | null) => {
+    const seconds = Math.max(1, Number(value) || 180)
+    localConfig.value.auto_continue_threshold = seconds * 1000
+  },
 })
 
 // 加载配置
@@ -59,6 +67,30 @@ onMounted(() => {
       <n-switch
         v-model:value="localConfig.enable_continue_reply"
         size="small"
+        @update:value="updateConfig"
+      />
+    </div>
+
+    <!-- 自动继续超时 -->
+    <div v-if="localConfig.enable_continue_reply">
+      <div class="flex items-center mb-3">
+        <div class="w-1.5 h-1.5 bg-info rounded-full mr-3 flex-shrink-0" />
+        <div>
+          <div class="text-sm font-medium leading-relaxed">
+            自动继续超时（秒）
+          </div>
+          <div class="text-xs opacity-60">
+            弹窗无输入、无点击、无键盘/鼠标操作达到该时长后，将自动触发继续
+          </div>
+        </div>
+      </div>
+      <n-input-number
+        v-model:value="autoContinueSeconds"
+        size="small"
+        :min="1"
+        :max="86400"
+        :step="10"
+        placeholder="180"
         @update:value="updateConfig"
       />
     </div>

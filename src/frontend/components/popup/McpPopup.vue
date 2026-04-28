@@ -29,6 +29,7 @@ interface AppConfig {
   reply: {
     enabled: boolean
     prompt: string
+    autoContinueThreshold: number
   }
 }
 
@@ -114,6 +115,7 @@ const inputRef = ref()
 // 继续回复配置
 const continueReplyEnabled = ref(true)
 const continuePrompt = ref('请按照最佳实践继续')
+const autoContinueTimeoutMs = ref(180000)
 
 // 计算属性
 const isVisible = computed(() => !!props.request)
@@ -151,6 +153,7 @@ async function loadReplyConfig() {
       const replyConfig = config as any
       continueReplyEnabled.value = replyConfig.enable_continue_reply ?? true
       continuePrompt.value = replyConfig.continue_prompt ?? '请按照最佳实践继续'
+      autoContinueTimeoutMs.value = replyConfig.auto_continue_threshold ?? 180000
     }
   }
   catch (error) {
@@ -163,13 +166,13 @@ watch(() => props.appConfig.reply, (newReplyConfig) => {
   if (newReplyConfig) {
     continueReplyEnabled.value = newReplyConfig.enabled
     continuePrompt.value = newReplyConfig.prompt
+    autoContinueTimeoutMs.value = newReplyConfig.autoContinueThreshold ?? 180000
   }
 }, { deep: true, immediate: true })
 
 // Telegram事件监听器
 let telegramUnlisten: (() => void) | null = null
 
-const AUTO_CONTINUE_IDLE_TIMEOUT_MS = 3 * 60 * 1000
 const AUTO_CONTINUE_ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as const
 let autoContinueTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -196,9 +199,9 @@ function resetAutoContinueTimer() {
     if (!canAutoContinue())
       return
 
-    console.log('[McpPopup] Auto continue after 3 minutes of inactivity')
+    console.log(`[McpPopup] Auto continue after ${autoContinueTimeoutMs.value}ms of inactivity`)
     handleContinue()
-  }, AUTO_CONTINUE_IDLE_TIMEOUT_MS)
+  }, autoContinueTimeoutMs.value)
 }
 
 function handleAutoContinueActivity() {

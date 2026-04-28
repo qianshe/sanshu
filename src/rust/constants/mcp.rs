@@ -31,8 +31,8 @@ pub const DEFAULT_ENABLED_TOOLS: &[&str] = &[
 /// 继续回复默认启用状态
 pub const DEFAULT_CONTINUE_REPLY_ENABLED: bool = true;
 
-/// 默认自动继续阈值
-pub const DEFAULT_AUTO_CONTINUE_THRESHOLD: u32 = 1000;
+/// 默认自动继续超时时间（毫秒）
+pub const DEFAULT_AUTO_CONTINUE_THRESHOLD: u32 = 180000;
 
 /// 默认继续提示词
 pub const DEFAULT_CONTINUE_PROMPT: &str = "请按照最佳实践继续";

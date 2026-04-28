@@ -1,12 +1,12 @@
 use chrono;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct ZhiRequest {
     #[schemars(description = "要显示给用户的消息")]
     pub message: String,
     #[schemars(description = "预定义的选项列表（可选）")]
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_predefined_options")]
     pub predefined_options: Vec<String>,
     #[schemars(description = "消息是否为Markdown格式，默认为true")]
     #[serde(default = "default_is_markdown")]
@@ -23,6 +23,44 @@ pub struct ZhiRequest {
     #[schemars(description = "UI/UX 上下文追加原因（可选）")]
     #[serde(default)]
     pub uiux_reason: Option<String>,
+}
+
+fn deserialize_predefined_options<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = serde_json::Value::deserialize(deserializer)?;
+
+    match value {
+        serde_json::Value::Null => Ok(Vec::new()),
+        serde_json::Value::Array(items) => items
+            .into_iter()
+            .map(|item| match item {
+                serde_json::Value::String(s) => Ok(s),
+                other => Err(serde::de::Error::custom(format!(
+                    "predefined_options 数组元素必须是字符串，实际收到: {}",
+                    other
+                ))),
+            })
+            .collect(),
+        serde_json::Value::String(s) => {
+            let trimmed = s.trim();
+            if trimmed.is_empty() {
+                return Ok(Vec::new());
+            }
+
+            serde_json::from_str::<Vec<String>>(trimmed).map_err(|e| {
+                serde::de::Error::custom(format!(
+                    "predefined_options 字符串不是合法的 JSON 字符串数组: {}",
+                    e
+                ))
+            })
+        }
+        other => Err(serde::de::Error::custom(format!(
+            "predefined_options 必须是字符串数组或其 JSON 字符串形式，实际收到: {}",
+            other
+        ))),
+    }
 }
 
 fn default_is_markdown() -> bool {
@@ -229,4 +267,34 @@ pub fn build_continue_response(request_id: Option<String>, source: &str) -> Stri
 
     let response = build_mcp_response(Some(continue_prompt), vec![], vec![], request_id, source);
     response.to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ZhiRequest;
+    use serde_json::json;
+
+    #[test]
+    fn zhi_request_accepts_native_predefined_options_array() {
+        let request: ZhiRequest = serde_json::from_value(json!({
+            "message": "test",
+            "predefined_options": ["A", "B"],
+            "project_root_path": "D:/repo"
+        }))
+        .expect("原生数组应能正常解析");
+
+        assert_eq!(request.predefined_options, vec!["A", "B"]);
+    }
+
+    #[test]
+    fn zhi_request_accepts_stringified_predefined_options_array() {
+        let request: ZhiRequest = serde_json::from_value(json!({
+            "message": "test",
+            "predefined_options": "[\"A\", \"B\"]",
+            "project_root_path": "D:/repo"
+        }))
+        .expect("字符串化 JSON 数组应能兼容解析");
+
+        assert_eq!(request.predefined_options, vec!["A", "B"]);
+    }
 }

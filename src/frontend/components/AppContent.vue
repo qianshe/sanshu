@@ -31,6 +31,7 @@ interface AppConfig {
   reply: {
     enabled: boolean
     prompt: string
+    autoContinueThreshold: number
   }
 }
 
@@ -60,7 +61,7 @@ interface Emits {
   testAudioError: [error: any]
   updateWindowSize: [size: { width: number, height: number, fixed: boolean }]
   updateSplitLayout: [enabled: boolean]
-  updateReplyConfig: [config: { enable_continue_reply?: boolean, continue_prompt?: string }]
+  updateReplyConfig: [config: { enable_continue_reply?: boolean, continue_prompt?: string, auto_continue_threshold?: number }]
   messageReady: [message: any]
   configReloaded: []
 }
