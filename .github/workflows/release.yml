@@ -67,6 +67,10 @@ jobs:
             # 2. 计算新版本
             TYPE="${{ inputs.version_type }}"
             CUSTOM="${{ inputs.custom_version }}"
+            echo "Selected version_type: $TYPE"
+            if [ "$TYPE" = "custom" ]; then
+              echo "Custom version input: $CUSTOM"
+            fi
 
             if [ "$TYPE" = "custom" ]; then
               if [ -z "$CUSTOM" ]; then
@@ -281,13 +285,14 @@ jobs:
           TAG_NAME="${{ needs.prepare.outputs.tag_name }}"
           REPO_OWNER="${{ github.repository_owner }}"
           REPO_NAME="${{ github.event.repository.name }}"
-          TEMP_CLIFF_CONFIG="$(mktemp)"
+          TEMP_CLIFF_CONFIG="$(mktemp --suffix .toml)"
 
           # 尝试获取上一个 Tag
           PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]+' | grep -A 1 "^$TAG_NAME$" | tail -n 1 || echo "")
 
           echo "Generating changelog for $TAG_NAME (Previous: $PREVIOUS_TAG)"
           echo "Using repository: ${REPO_OWNER}/${REPO_NAME}"
+          echo "Using temp cliff config: $TEMP_CLIFF_CONFIG"
 
           # 为当前仓库动态生成 git-cliff 配置，避免 hardcoded 仓库地址导致 GitHub metadata 404
           sed \
