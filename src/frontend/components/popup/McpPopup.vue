@@ -169,10 +169,47 @@ watch(() => props.appConfig.reply, (newReplyConfig) => {
 // Telegram事件监听器
 let telegramUnlisten: (() => void) | null = null
 
+const AUTO_CONTINUE_IDLE_TIMEOUT_MS = 3 * 60 * 1000
+const AUTO_CONTINUE_ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as const
+let autoContinueTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearAutoContinueTimer() {
+  if (autoContinueTimer) {
+    clearTimeout(autoContinueTimer)
+    autoContinueTimer = null
+  }
+}
+
+function canAutoContinue() {
+  return isVisible.value && continueReplyEnabled.value && !submitting.value
+}
+
+function resetAutoContinueTimer() {
+  clearAutoContinueTimer()
+
+  if (!canAutoContinue())
+    return
+
+  autoContinueTimer = setTimeout(() => {
+    autoContinueTimer = null
+
+    if (!canAutoContinue())
+      return
+
+    console.log('[McpPopup] Auto continue after 3 minutes of inactivity')
+    handleContinue()
+  }, AUTO_CONTINUE_IDLE_TIMEOUT_MS)
+}
+
+function handleAutoContinueActivity() {
+  resetAutoContinueTimer()
+}
+
 // 监听请求变化
 watch(() => props.request, (newRequest) => {
   if (newRequest) {
     resetForm()
+    resetAutoContinueTimer()
     loading.value = true
     // 每次显示弹窗时重新加载配置
     loadReplyConfig()
@@ -191,7 +228,14 @@ watch(() => props.request, (newRequest) => {
       loading.value = false
     }, 300)
   }
+  else {
+    clearAutoContinueTimer()
+  }
 }, { immediate: true })
+
+watch(continueReplyEnabled, () => {
+  resetAutoContinueTimer()
+})
 
 // 设置Telegram事件监听
 async function setupTelegramListener() {
@@ -210,6 +254,7 @@ async function setupTelegramListener() {
 
 // 处理Telegram事件
 function handleTelegramEvent(event: any) {
+  resetAutoContinueTimer()
   console.log('🎯 [McpPopup] 开始处理事件:', event.type)
 
   switch (event.type) {
@@ -266,6 +311,10 @@ function handleTextUpdate(text: string) {
 onMounted(async () => {
   loadReplyConfig()
   setupTelegramListener()
+  AUTO_CONTINUE_ACTIVITY_EVENTS.forEach((eventName) => {
+    window.addEventListener(eventName, handleAutoContinueActivity, { passive: true })
+  })
+  resetAutoContinueTimer()
   // 加载 MCP 工具配置（用于检测 sou 是否启用）
   await loadMcpTools()
   // 检测 ACE 配置是否完整
@@ -277,6 +326,10 @@ onUnmounted(() => {
   if (telegramUnlisten) {
     telegramUnlisten()
   }
+  clearAutoContinueTimer()
+  AUTO_CONTINUE_ACTIVITY_EVENTS.forEach((eventName) => {
+    window.removeEventListener(eventName, handleAutoContinueActivity)
+  })
   // 组件卸载时停止索引状态轮询
   stopPolling()
 })
@@ -337,6 +390,7 @@ async function handleSubmit() {
   if (!canSubmit.value || submitting.value)
     return
 
+  clearAutoContinueTimer()
   submitting.value = true
 
   try {
@@ -389,6 +443,7 @@ async function handleSubmit() {
 
 // 处理输入更新
 function handleInputUpdate(data: PopupInputUpdatePayload) {
+  resetAutoContinueTimer()
   userInput.value = data.userInput
   rawUserInput.value = data.rawUserInput
   conditionalContext.value = data.conditionalContext
@@ -411,6 +466,7 @@ async function handleContinue() {
   if (submitting.value)
     return
 
+  clearAutoContinueTimer()
   submitting.value = true
 
   try {
