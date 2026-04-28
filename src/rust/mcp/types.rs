@@ -25,19 +25,17 @@ pub struct ZhiRequest {
     pub uiux_reason: Option<String>,
 }
 
-fn deserialize_predefined_options<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+fn parse_predefined_options_value<E>(value: serde_json::Value) -> Result<Vec<String>, E>
 where
-    D: Deserializer<'de>,
+    E: serde::de::Error,
 {
-    let value = serde_json::Value::deserialize(deserializer)?;
-
     match value {
         serde_json::Value::Null => Ok(Vec::new()),
         serde_json::Value::Array(items) => items
             .into_iter()
             .map(|item| match item {
                 serde_json::Value::String(s) => Ok(s),
-                other => Err(serde::de::Error::custom(format!(
+                other => Err(E::custom(format!(
                     "predefined_options 数组元素必须是字符串，实际收到: {}",
                     other
                 ))),
@@ -49,18 +47,41 @@ where
                 return Ok(Vec::new());
             }
 
-            serde_json::from_str::<Vec<String>>(trimmed).map_err(|e| {
-                serde::de::Error::custom(format!(
-                    "predefined_options 字符串不是合法的 JSON 字符串数组: {}",
+            let parsed = serde_json::from_str::<serde_json::Value>(trimmed).map_err(|e| {
+                E::custom(format!(
+                    "predefined_options 字符串不是合法的 JSON 值: {}",
                     e
                 ))
-            })
+            })?;
+
+            parse_predefined_options_value::<E>(parsed)
         }
-        other => Err(serde::de::Error::custom(format!(
-            "predefined_options 必须是字符串数组或其 JSON 字符串形式，实际收到: {}",
+        serde_json::Value::Object(map) => {
+            if let Some(items) = map.get("item").cloned() {
+                return parse_predefined_options_value::<E>(items);
+            }
+            if let Some(items) = map.get("items").cloned() {
+                return parse_predefined_options_value::<E>(items);
+            }
+
+            Err(E::custom(format!(
+                "predefined_options 对象必须包含 item/items 数组字段，实际收到: {}",
+                serde_json::Value::Object(map)
+            )))
+        }
+        other => Err(E::custom(format!(
+            "predefined_options 必须是字符串数组、其 JSON 字符串形式，或带 item/items 的对象包装，实际收到: {}",
             other
         ))),
     }
+}
+
+fn deserialize_predefined_options<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = serde_json::Value::deserialize(deserializer)?;
+    parse_predefined_options_value::<D::Error>(value)
 }
 
 fn default_is_markdown() -> bool {
@@ -294,6 +315,20 @@ mod tests {
             "project_root_path": "D:/repo"
         }))
         .expect("字符串化 JSON 数组应能兼容解析");
+
+        assert_eq!(request.predefined_options, vec!["A", "B"]);
+    }
+
+    #[test]
+    fn zhi_request_accepts_item_wrapped_predefined_options_array() {
+        let request: ZhiRequest = serde_json::from_value(json!({
+            "message": "test",
+            "predefined_options": {
+                "item": ["A", "B"]
+            },
+            "project_root_path": "D:/repo"
+        }))
+        .expect("item 包装数组应能兼容解析");
 
         assert_eq!(request.predefined_options, vec!["A", "B"]);
     }
