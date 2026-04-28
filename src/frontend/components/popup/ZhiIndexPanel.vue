@@ -603,6 +603,9 @@ onMounted(() => {
 <style scoped>
 /* ==================== 面板容器 ==================== */
 .zhi-index-panel {
+  min-width: 0;
+  width: auto;
+  max-width: calc(100% - 16px);
   margin: 8px;
   border-radius: 12px;
   overflow: hidden;
@@ -615,6 +618,7 @@ onMounted(() => {
 /* ==================== 引导模式样式 ==================== */
 .panel-guide {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
@@ -637,14 +641,18 @@ onMounted(() => {
 }
 
 .guide-content {
+  min-width: 0;
   flex: 1;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
 .guide-text {
+  min-width: 0;
+  word-break: break-word;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.65);
 }
@@ -701,8 +709,10 @@ onMounted(() => {
 /* ==================== 正常模式 - 头部状态条 ==================== */
 .panel-header {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 12px 16px;
   min-height: 44px;
   cursor: pointer;
@@ -714,8 +724,10 @@ onMounted(() => {
 }
 
 .header-left {
+  min-width: 0;
   display: flex;
   align-items: center;
+  flex: 1;
   flex-wrap: wrap;
   gap: 6px;
   row-gap: 4px;
@@ -758,8 +770,10 @@ onMounted(() => {
 }
 
 .header-right {
+  min-width: 0;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .expand-icon {
@@ -771,6 +785,8 @@ onMounted(() => {
 
 /* ==================== 正常模式 - 展开内容 ==================== */
 .panel-content {
+  min-width: 0;
+  overflow-x: hidden;
   padding: 0 16px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.04);
 }

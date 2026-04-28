@@ -50,10 +50,16 @@
 }
 
 html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   background-color: var(--body-color, #f5f5f5);
 }
 
 body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
   font-family: var(--font-family-sans);
@@ -62,6 +68,12 @@ body {
   background-color: var(--body-color, #f5f5f5);
   color: var(--text-color, #333333);
   min-height: 100vh;
+}
+
+#app {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* 字体大小工具类 */

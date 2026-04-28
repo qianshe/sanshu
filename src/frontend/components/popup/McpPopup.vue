@@ -3,7 +3,7 @@ import type { McpRequest } from '../../types/popup'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { useDialog, useMessage } from 'naive-ui'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 import { useAcemcpSync } from '../../composables/useAcemcpSync'
 import { useMcpToolsReactive } from '../../composables/useMcpTools'
@@ -208,6 +208,41 @@ function handleAutoContinueActivity() {
   resetAutoContinueTimer()
 }
 
+function scheduleOverflowDebug(reason: string) {
+  nextTick(() => {
+    window.setTimeout(() => {
+      if (!isVisible.value)
+        return
+
+      const root = document.documentElement
+      const overflow = root.scrollWidth - root.clientWidth
+      if (overflow <= 2)
+        return
+
+      const offenders = Array.from(document.querySelectorAll<HTMLElement>('body *'))
+        .map((el) => ({
+          el,
+          diff: el.scrollWidth - el.clientWidth,
+        }))
+        .filter(item => item.diff > 2)
+        .sort((a, b) => b.diff - a.diff)
+        .slice(0, 8)
+        .map(({ el, diff }) => ({
+          diff,
+          tag: el.tagName.toLowerCase(),
+          className: el.className || '',
+          text: (el.textContent || '').trim().slice(0, 80),
+        }))
+
+      console.warn('[McpPopup] Horizontal overflow detected', {
+        reason,
+        viewport: { clientWidth: root.clientWidth, scrollWidth: root.scrollWidth },
+        offenders,
+      })
+    }, 80)
+  })
+}
+
 // 监听请求变化
 watch(() => props.request, (newRequest) => {
   if (newRequest) {
@@ -229,6 +264,7 @@ watch(() => props.request, (newRequest) => {
 
     setTimeout(() => {
       loading.value = false
+      scheduleOverflowDebug('request-opened')
     }, 300)
   }
   else {
@@ -318,6 +354,7 @@ onMounted(async () => {
     window.addEventListener(eventName, handleAutoContinueActivity, { passive: true })
   })
   resetAutoContinueTimer()
+  scheduleOverflowDebug('mounted')
   // 加载 MCP 工具配置（用于检测 sou 是否启用）
   await loadMcpTools()
   // 检测 ACE 配置是否完整
@@ -678,7 +715,7 @@ function handleOpenIndexStatus() {
 </script>
 
 <template>
-  <div v-if="isVisible" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+  <div v-if="isVisible" class="flex min-w-0 flex-col flex-1 min-h-0 overflow-hidden">
     <!-- ACE 索引状态面板（智能降级：根据 sou 启用状态和 ACE 配置显示不同内容） -->
     <ZhiIndexPanel
       :project-root="request?.project_root_path"
@@ -783,7 +820,7 @@ function handleOpenIndexStatus() {
     </div>
 
     <!-- 底部操作栏 - 上下布局时固定在底部 -->
-    <div v-if="!props.appConfig.window.splitLayout" class="flex-shrink-0 bg-black-100 border-t-2 border-black-200" data-guide="popup-actions">
+    <div v-if="!props.appConfig.window.splitLayout" class="min-w-0 flex-shrink-0 bg-black-100 border-t-2 border-black-200" data-guide="popup-actions">
       <PopupActions
         :request="request" :loading="loading" :submitting="submitting" :can-submit="canSubmit"
         :can-enhance="canEnhance"
