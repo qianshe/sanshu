@@ -148,7 +148,7 @@ function mapUpdateInfoToVersionInfo(updateInfo: UpdateInfo): VersionInfo {
 // 默认情况下优先走 Tauri 后端（带代理/网络检测），只有在后端不可用时才会调用本函数
 async function checkLatestVersionViaGithub(): Promise<VersionInfo | null> {
   try {
-    const response = await fetch('https://api.github.com/repos/yuaotian/sanshu/releases/latest', {
+    const response = await fetch('https://api.github.com/repos/qianshe/sanshu/releases/latest', {
       headers: {
         Accept: 'application/vnd.github.v3+json',
       },
@@ -301,7 +301,7 @@ async function safeOpenUrl(url: string): Promise<void> {
 
 // 打开下载页面
 async function openDownloadPage(): Promise<void> {
-  await safeOpenUrl('https://github.com/yuaotian/sanshu/releases/latest')
+  await safeOpenUrl('https://github.com/qianshe/sanshu/releases/latest')
 }
 
 // 打开发布页面

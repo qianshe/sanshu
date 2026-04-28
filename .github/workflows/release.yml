@@ -279,16 +279,27 @@ jobs:
         id: changelog
         run: |
           TAG_NAME="${{ needs.prepare.outputs.tag_name }}"
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${{ github.event.repository.name }}"
+          TEMP_CLIFF_CONFIG="$(mktemp)"
 
           # 尝试获取上一个 Tag
           PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]+' | grep -A 1 "^$TAG_NAME$" | tail -n 1 || echo "")
 
           echo "Generating changelog for $TAG_NAME (Previous: $PREVIOUS_TAG)"
+          echo "Using repository: ${REPO_OWNER}/${REPO_NAME}"
+
+          # 为当前仓库动态生成 git-cliff 配置，避免 hardcoded 仓库地址导致 GitHub metadata 404
+          sed \
+            -e "s|https://github.com/yuaotian/sanshu|https://github.com/${REPO_OWNER}/${REPO_NAME}|g" \
+            -e "s|owner = \"yuaotian\"|owner = \"${REPO_OWNER}\"|g" \
+            -e "s|repo = \"sanshu\"|repo = \"${REPO_NAME}\"|g" \
+            cliff.toml > "$TEMP_CLIFF_CONFIG"
 
           if [ -z "$PREVIOUS_TAG" ] || [ "$PREVIOUS_TAG" == "$TAG_NAME" ]; then
-            git-cliff --tag "$TAG_NAME" --output changelog.md
+            git-cliff -c "$TEMP_CLIFF_CONFIG" --tag "$TAG_NAME" --output changelog.md
           else
-            git-cliff "$PREVIOUS_TAG..$TAG_NAME" --output changelog.md
+            git-cliff -c "$TEMP_CLIFF_CONFIG" "$PREVIOUS_TAG..$TAG_NAME" --output changelog.md
           fi
 
           # 生成发布标题 (提取主要特性)

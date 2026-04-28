@@ -5,13 +5,13 @@
   "packageManager": "pnpm@10.28.2",
   "author": "煎饼果子(86)",
   "license": "MIT",
-  "homepage": "https://github.com/yuaotian/sanshu",
+  "homepage": "https://github.com/qianshe/sanshu",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yuaotian/sanshu.git"
+    "url": "https://github.com/qianshe/sanshu.git"
   },
   "bugs": {
-    "url": "https://github.com/yuaotian/sanshu/issues"
+    "url": "https://github.com/qianshe/sanshu/issues"
   },
   "scripts": {
     "dev": "vite",

@@ -14,7 +14,7 @@ const formattedLastCheckTime = computed(() => {
 // 安全打开GitHub链接
 async function openGitHub() {
   try {
-    await safeOpenUrl('https://github.com/yuaotian/sanshu')
+    await safeOpenUrl('https://github.com/qianshe/sanshu')
     message.success('正在打开GitHub页面...')
   }
   catch (error) {
@@ -31,7 +31,7 @@ async function openGitHub() {
 // 安全打开GitHub Star页面
 async function openGitHubStars() {
   try {
-    await safeOpenUrl('https://github.com/yuaotian/sanshu/stargazers')
+    await safeOpenUrl('https://github.com/qianshe/sanshu/stargazers')
     message.success('正在打开Star页面...')
   }
   catch (error) {

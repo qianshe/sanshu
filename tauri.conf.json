@@ -78,7 +78,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://api.github.com/repos/yuaotian/sanshu/releases/latest"
+        "https://api.github.com/repos/qianshe/sanshu/releases/latest"
       ],
       "dialog": false,
       "pubkey": ""

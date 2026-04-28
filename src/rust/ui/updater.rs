@@ -94,7 +94,7 @@ pub async fn check_for_updates(app: AppHandle, state: State<'_, AppState>) -> Re
     log::info!("📡 发送 GitHub API 请求");
 
     let response = client
-        .get("https://api.github.com/repos/yuaotian/sanshu/releases/latest")
+        .get("https://api.github.com/repos/qianshe/sanshu/releases/latest")
         .header("User-Agent", "sanshu-app/1.0")
         .header("Accept", "application/vnd.github.v3+json")
         .send()
