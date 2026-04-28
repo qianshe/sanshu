@@ -14,6 +14,12 @@
   --color-surface-900: #202020;
   --color-surface-950: #101010;
   --color-on-surface: #333333;
+  --scrollbar-size: 8px;
+  --scrollbar-radius: 999px;
+  --scrollbar-track: rgba(15, 23, 42, 0.05);
+  --scrollbar-thumb: rgba(100, 116, 139, 0.28);
+  --scrollbar-thumb-hover: rgba(100, 116, 139, 0.46);
+  --scrollbar-thumb-active: rgba(100, 116, 139, 0.58);
 
   /* 字体变量 - 由字体管理器动态设置 */
   --font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -32,6 +38,13 @@
   --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
+:root.dark {
+  --scrollbar-track: rgba(255, 255, 255, 0.04);
+  --scrollbar-thumb: rgba(148, 163, 184, 0.22);
+  --scrollbar-thumb-hover: rgba(148, 163, 184, 0.36);
+  --scrollbar-thumb-active: rgba(148, 163, 184, 0.5);
+}
+
 /* UnoCSS 自定义样式 */
 @keyframes fadeIn {
   from {
@@ -47,6 +60,42 @@
 /* 全局样式重置 */
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-radius);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 html {
