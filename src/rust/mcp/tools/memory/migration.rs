@@ -115,6 +115,7 @@ impl MemoryMigrator {
             version: "2.0".to_string(),
             project_path: project_path.to_string(),
             entries: deduped_entries,
+            deleted_entries: Vec::new(),
             last_dedup_at: Utc::now(),
             config: MemoryConfig::default(),
         };
