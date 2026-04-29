@@ -140,7 +140,7 @@ impl ServerHandler for ZhiServer {
                 "properties": {
                     "action": {
                         "type": "string",
-                        "description": "操作类型：记忆(添加) | 回忆(查询) | 整理(去重) | 列表(全部记忆) | 预览相似(检测相似度) | 配置(获取/更新) | 删除(移除记忆)"
+                        "description": "操作类型：记忆(添加，仅当用户明确说请记住/保存为长期记忆时使用) | 回忆(查询) | 整理(去重) | 列表(全部记忆) | 预览相似(检测相似度) | 配置(获取/更新) | 删除(移除记忆并记录删除墓碑，防止相似内容再次写回)"
                     },
                     "project_path": {
                         "type": "string",
@@ -148,7 +148,7 @@ impl ServerHandler for ZhiServer {
                     },
                     "content": {
                         "type": "string",
-                        "description": "记忆内容（记忆/预览相似操作时必需）"
+                        "description": "记忆内容（记忆/预览相似操作时必需）。禁止把临时任务过程、未明确要求长期保存的偏好或工具选择推断写入记忆。"
                     },
                     "category": {
                         "type": "string",
@@ -183,7 +183,7 @@ impl ServerHandler for ZhiServer {
             if let serde_json::Value::Object(schema_map) = ji_schema {
                 tools.push(Tool {
                     name: Cow::Borrowed("ji"),
-                    description: Some(Cow::Borrowed("全局记忆管理工具，用于存储和管理重要的开发规范、用户偏好和最佳实践")),
+                    description: Some(Cow::Borrowed("全局记忆管理工具。只有当用户明确要求“记住/保存为长期记忆”时才允许使用 action=记忆；不要主动推断或自动保存临时偏好。删除会记录墓碑，防止相似内容再次写回。")),
                     input_schema: Arc::new(schema_map),
                     annotations: None,
                     icons: None,

@@ -71,12 +71,23 @@ impl MemoryTool {
                 log_debug!("[ji] 执行记忆操作: category={:?}, content_len={}", category, request.content.len());
 
                 // 添加记忆（带去重检测）
+                let blocked_by_deleted = manager.was_deleted(&request.content);
                 match manager.add_memory(&request.content, category) {
                     Ok(Some(id)) => {
                         log_important!(info, "[ji] 记忆添加成功: id={}, category={:?}", id, category);
                         format!(
                             "✅ 记忆已添加，ID: {}\n📝 内容: {}\n📂 分类: {}{}{}",
                             id,
+                            request.content,
+                            category.display_name(),
+                            index_hint,
+                            non_git_hint
+                        )
+                    }
+                    Ok(None) if blocked_by_deleted => {
+                        log_debug!("[ji] 记忆被删除墓碑拒绝: 用户曾删除过相似内容");
+                        format!(
+                            "⚠️ 这条记忆与用户已删除的内容相似，已按删除意图拒绝再次写入\n📝 内容: {}\n📂 分类: {}{}{}",
                             request.content,
                             category.display_name(),
                             index_hint,

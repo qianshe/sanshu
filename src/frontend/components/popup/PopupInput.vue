@@ -66,15 +66,30 @@ const conditionalPrompts = computed(() =>
   customPrompts.value.filter(prompt => prompt.type === 'conditional'),
 )
 
-// 工具开关类 prompt（有 linked_mcp_tool 的）：独立于总开关，始终显示
+// Tool-linked conditional prompts.
 const toolSwitchPrompts = computed(() =>
   conditionalPrompts.value.filter(prompt => !!prompt.linked_mcp_tool),
 )
 
-// 普通条件类 prompt（无 linked_mcp_tool）：受总开关控制
+// Regular conditional prompts are controlled by the context append switch.
 const regularConditionalPrompts = computed(() =>
   conditionalPrompts.value.filter(prompt => !prompt.linked_mcp_tool),
 )
+
+// Only show prompts whose linked MCP tool is currently enabled.
+const enabledToolSwitchPrompts = computed(() =>
+  toolSwitchPrompts.value.filter(prompt => isMcpToolEnabled(prompt.linked_mcp_tool)),
+)
+
+const hiddenToolSwitchPrompts = computed(() =>
+  toolSwitchPrompts.value.filter(prompt => !isMcpToolEnabled(prompt.linked_mcp_tool)),
+)
+
+// Only enabled tool prompts are allowed to contribute to the outgoing context.
+const activeConditionalPrompts = computed(() => [
+  ...regularConditionalPrompts.value,
+  ...enabledToolSwitchPrompts.value,
+])
 
 // MCP 工具状态管理
 const { mcpTools, loadMcpTools } = useMcpToolsReactive()
@@ -86,12 +101,6 @@ function isMcpToolEnabled(toolId?: string): boolean {
   return tool?.enabled ?? false
 }
 
-// 获取 MCP 工具名称（用于提示文案）
-function getMcpToolName(toolId?: string): string {
-  if (!toolId) return ''
-  const tool = mcpTools.value.find(t => t.id === toolId)
-  return tool?.name ?? toolId
-}
 
 // 拖拽排序相关状态
 const promptContainer = ref<HTMLElement | null>(null)
@@ -468,7 +477,7 @@ async function handleConditionalToggle(promptId: string, value: boolean) {
 
 // 生成条件性prompt的追加内容（使用统一的 buildConditionalContext）
 function generateConditionalContent(): string {
-  const content = buildConditionalContext(conditionalPrompts.value, {
+  const content = buildConditionalContext(activeConditionalPrompts.value, {
     contextAppendEnabled: contextAppendEnabled.value,
     includeToolSwitches: true,
   })
@@ -854,20 +863,17 @@ defineExpose({
           </div>
         </div>
 
-        <!-- 工具开关区域（始终显示，不受总开关影响） -->
-        <div v-if="customPromptEnabled && toolSwitchPrompts.length > 0" class="space-y-2" data-guide="tool-switches">
+        <!-- 工具提示区域（仅展示当前已启用 MCP 工具对应的 prompt） -->
+        <div v-if="customPromptEnabled && enabledToolSwitchPrompts.length > 0" class="space-y-2" data-guide="tool-switches">
           <div class="text-xs text-on-surface-secondary flex items-center gap-2">
             <div class="i-carbon-api w-3 h-3 text-primary-500" />
-            <span>工具开关:</span>
+            <span>工具提示:</span>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div
-              v-for="prompt in toolSwitchPrompts"
+              v-for="prompt in enabledToolSwitchPrompts"
               :key="prompt.id"
-              :class="[
-                'flex items-center justify-between p-2 bg-container-secondary rounded border border-gray-600 transition-colors text-xs',
-                isMcpToolEnabled(prompt.linked_mcp_tool) ? 'hover:bg-container-tertiary' : 'opacity-50 cursor-not-allowed'
-              ]"
+              class="flex items-center justify-between p-2 bg-container-secondary rounded border border-gray-600 transition-colors text-xs hover:bg-container-tertiary"
             >
               <div class="flex-1 min-w-0 mr-2">
                 <div class="text-xs text-on-surface truncate font-medium" :title="prompt.condition_text || prompt.name">
@@ -877,19 +883,15 @@ defineExpose({
                   {{ getToolSwitchDescription(prompt) }}
                 </div>
               </div>
-              <!-- 使用 n-tooltip 包裹开关，当 MCP 工具未启用时显示提示 -->
-              <n-tooltip :disabled="isMcpToolEnabled(prompt.linked_mcp_tool) || !prompt.linked_mcp_tool">
-                <template #trigger>
-                  <n-switch
-                    :value="prompt.current_state ?? false"
-                    size="small"
-                    :disabled="!isMcpToolEnabled(prompt.linked_mcp_tool)"
-                    @update:value="(value: boolean) => handleConditionalToggle(prompt.id, value)"
-                  />
-                </template>
-                请先在设置中开启「{{ getMcpToolName(prompt.linked_mcp_tool) }}」MCP 工具
-              </n-tooltip>
+              <n-switch
+                :value="prompt.current_state ?? false"
+                size="small"
+                @update:value="(value: boolean) => handleConditionalToggle(prompt.id, value)"
+              />
             </div>
+          </div>
+          <div v-if="hiddenToolSwitchPrompts.length > 0" class="text-xs text-on-surface-secondary opacity-60 leading-relaxed">
+            已隐藏 {{ hiddenToolSwitchPrompts.length }} 个未启用 MCP 工具的提示；如需使用，请到设置中启用对应工具。
           </div>
         </div>
 

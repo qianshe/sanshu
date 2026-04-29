@@ -102,11 +102,11 @@ pub struct MemoryConfigRequest {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct JiyiRequest {
-    #[schemars(description = "操作类型：记忆(添加) | 回忆(查询) | 整理(去重) | 列表(全部记忆) | 预览相似(检测相似度) | 配置(获取/更新) | 删除(移除记忆)")]
+    #[schemars(description = "操作类型：记忆(添加，仅当用户明确说请记住/保存为长期记忆时使用) | 回忆(查询) | 整理(去重) | 列表(全部记忆) | 预览相似(检测相似度) | 配置(获取/更新) | 删除(移除记忆并记录删除墓碑)")]
     pub action: String,
     #[schemars(description = "项目路径（必需）")]
     pub project_path: String,
-    #[schemars(description = "记忆内容（记忆/预览相似操作时必需）")]
+    #[schemars(description = "记忆内容（记忆/预览相似操作时必需）。禁止保存临时任务过程、未明确要求长期保存的工具选择或推断偏好。")]
     #[serde(default)]
     pub content: String,
     #[schemars(

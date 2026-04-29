@@ -19,6 +19,20 @@ pub struct MemoryEntry {
     pub updated_at: DateTime<Utc>,
 }
 
+/// 已删除记忆墓碑。
+///
+/// 用于表达“用户明确删除/确认去掉过这条记忆”，避免后续模型再次把相同或高度相似内容写回。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeletedMemoryEntry {
+    /// 被删除的原始内容
+    pub content: String,
+    /// 归一化内容（用于相似度计算）
+    #[serde(default)]
+    pub content_normalized: String,
+    /// 删除时间
+    pub deleted_at: DateTime<Utc>,
+}
+
 /// 记忆分类
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum MemoryCategory {
@@ -66,6 +80,9 @@ pub struct MemoryStore {
     pub project_path: String,
     /// 所有记忆条目
     pub entries: Vec<MemoryEntry>,
+    /// 已删除记忆墓碑（用于防止用户确认删除的内容被再次写回）
+    #[serde(default)]
+    pub deleted_entries: Vec<DeletedMemoryEntry>,
     /// 最后去重时间
     pub last_dedup_at: DateTime<Utc>,
     /// 去重配置
@@ -78,6 +95,7 @@ impl Default for MemoryStore {
             version: "2.0".to_string(),
             project_path: String::new(),
             entries: Vec::new(),
+            deleted_entries: Vec::new(),
             last_dedup_at: Utc::now(),
             config: MemoryConfig::default(),
         }

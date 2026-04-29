@@ -6,6 +6,7 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { useMediaQuery } from '@vueuse/core'
 import { useMessage } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useMcpToolsReactive } from '../../composables/useMcpTools'
 import { buildConditionalContext } from '../../utils/conditionalContext'
 import EnhanceConfigPanel from './enhance/EnhanceConfigPanel.vue'
 import EnhancePreview from './enhance/EnhancePreview.vue'
@@ -97,6 +98,7 @@ const config = ref<EnhanceConfig>({
 
 const customRuleInput = ref('')
 const conditionalPrompts = ref<CustomPrompt[]>([])
+const { mcpTools, loadMcpTools } = useMcpToolsReactive()
 const historyEntries = ref<ChatHistoryEntry[]>([])
 const historyLoading = ref(false)
 const historyError = ref('')
@@ -117,9 +119,14 @@ let customRuleTimer: number | undefined
 // 计算属性
 const corePrompt = computed(() => props.originalPrompt?.trim() ?? '')
 const coreCharCount = computed(() => corePrompt.value.length)
-// 使用统一的 buildConditionalContext，EnhanceModal 默认包含所有条件性上下文
-const contextText = computed(() => buildConditionalContext(conditionalPrompts.value, {
-  contextAppendEnabled: true, // EnhanceModal 中总是启用
+const activeConditionalPrompts = computed(() => conditionalPrompts.value.filter((prompt) => {
+  if (!prompt.linked_mcp_tool) return true
+  return mcpTools.value.some(tool => tool.id === prompt.linked_mcp_tool && tool.enabled)
+}))
+
+// Build context from regular prompts and prompts linked to enabled MCP tools only.
+const contextText = computed(() => buildConditionalContext(activeConditionalPrompts.value, {
+  contextAppendEnabled: true, // Always enabled inside EnhanceModal
   includeToolSwitches: true,
 }))
 
@@ -268,6 +275,7 @@ function resetConfigState() {
 // 加载条件性 prompt 上下文
 async function loadConditionalPrompts() {
   try {
+    await loadMcpTools()
     const configData = await invoke('get_custom_prompt_config')
     const promptConfig = configData as any
     const prompts = (promptConfig.prompts || []) as CustomPrompt[]

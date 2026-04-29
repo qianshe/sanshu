@@ -10,7 +10,7 @@ use chrono::Utc;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::types::{MemoryEntry, MemoryCategory, MemoryStore, MemoryConfig};
+use super::types::{MemoryEntry, DeletedMemoryEntry, MemoryCategory, MemoryStore, MemoryConfig};
 use super::similarity::TextSimilarity;
 use super::dedup::MemoryDeduplicator;
 use super::migration::MemoryMigrator;
@@ -139,6 +139,12 @@ impl MemoryManager {
             return Err(anyhow::anyhow!("记忆内容不能为空"));
         }
 
+        // 用户删除过的内容视为显式拒绝，不允许后续模型再次写回。
+        if self.was_deleted(content) {
+            log_debug!("记忆已被用户删除过，拒绝再次写入: {}", content);
+            return Ok(None);
+        }
+
         // 如果启用去重检测，检查是否重复
         if self.store.config.enable_dedup {
             let dedup = MemoryDeduplicator::new(self.store.config.similarity_threshold);
@@ -232,12 +238,46 @@ impl MemoryManager {
         });
 
         if self.store.entries.len() < original_count {
+            if let Some(content) = deleted_content.as_deref() {
+                self.remember_deleted_content(content);
+            }
             self.save_store()?;
             log_debug!("已删除记忆: {}", memory_id);
             Ok(deleted_content)
         } else {
             Ok(None) // 未找到该 ID
         }
+    }
+
+    /// 判断内容是否与用户删除过的记忆相同或高度相似。
+    pub fn was_deleted(&self, content: &str) -> bool {
+        let threshold = self.store.config.similarity_threshold;
+        self.store.deleted_entries.iter().any(|deleted| {
+            TextSimilarity::calculate_enhanced(content, &deleted.content) >= threshold
+        })
+    }
+
+    /// 记录用户明确删除过的内容，作为后续写入的拒绝列表。
+    fn remember_deleted_content(&mut self, content: &str) {
+        let normalized = TextSimilarity::normalize(content);
+        if normalized.is_empty() {
+            return;
+        }
+
+        let already_recorded = self.store.deleted_entries.iter().any(|deleted| {
+            deleted.content_normalized == normalized
+                || TextSimilarity::calculate_enhanced(content, &deleted.content) >= self.store.config.similarity_threshold
+        });
+
+        if already_recorded {
+            return;
+        }
+
+        self.store.deleted_entries.push(DeletedMemoryEntry {
+            content: content.to_string(),
+            content_normalized: normalized,
+            deleted_at: Utc::now(),
+        });
     }
 
 
